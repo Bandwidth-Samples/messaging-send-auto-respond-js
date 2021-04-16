@@ -32,7 +32,7 @@ cp .env.default .env
 vi .env
 ```
 
-The config values are straightforward, make sure that your FROM_NUMBER starts with a "+".
+The config values are straightforward, make sure that your BW_NUMBER starts with a "+".
 
 ## Running it
 

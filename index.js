@@ -9,10 +9,10 @@ app.use(express.static("public"));
 
 // global vars
 const port = 3000;
-const accountId = process.env.ACCOUNT_ID;
+const accountId = process.env.BW_ACCOUNT_ID;
 
-BandwidthMessaging.Configuration.basicAuthUserName = process.env.USERNAME;
-BandwidthMessaging.Configuration.basicAuthPassword = process.env.PASSWORD;
+BandwidthMessaging.Configuration.basicAuthUserName = process.env.BW_USERNAME;
+BandwidthMessaging.Configuration.basicAuthPassword = process.env.BW_PASSWORD;
 var messagingController = BandwidthMessaging.APIController;
 
 // these should be in priority order, since we'll stop when we get a match
@@ -33,7 +33,7 @@ const searchWords = new Map([
  */
 app.get("/send", async (req, res) => {
   let to_num = req.query.to_num;
-  let from_num = process.env.FROM_NUMBER;
+  let from_num = process.env.BW_NUMBER;
   // leave hardcoded to prevent abuse if you make this script public
   let message =
     "Hi there, here is a test message from my account, please reply for autoresponder";
@@ -108,7 +108,7 @@ async function dealWithInboundMessage(item) {
 
   try {
     let to_num = item.message.from;
-    let from_num = process.env.FROM_NUMBER;
+    let from_num = process.env.BW_NUMBER;
     let message = "[Auto-reply] " + determineAutoResponse(item.message.text);
 
     console.log(`sending... to:${to_num}, from:${from_num}, Body:${message}`);
@@ -152,7 +152,7 @@ function determineAutoResponse(text) {
 async function sendMessage(to_num, from_num, message) {
   console.log(`About to send to ${to_num} from ${from_num}`);
   var body = new BandwidthMessaging.MessageRequest({
-    applicationId: process.env.MESSAGE_APP_ID,
+    applicationId: process.env.BW_MESSAGING_APPLICATION_ID,
     to: [to_num],
     from: from_num,
     text: message,
