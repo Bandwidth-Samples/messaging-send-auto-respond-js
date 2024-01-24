@@ -1,61 +1,76 @@
-# SMS send and auto-responder
+# Auto-Respond to SMS
 
-This NodeJS app can send sms messages as well as act as an auto-responder.
+<a href="http://dev.bandwidth.com/docs/messaging/quickStart">
+  <img src="./icon-messaging.svg" title="Messaging Quick Start Guide" alt="Messaging Quick Start Guide"/>
+</a>
 
-### Sending SMS
+ # Table of Contents
 
-This app will send a sample message out to the number specified in the query string of the call. The message is hard coded in the `index.js` code. This should not be exposed publicly as it could be abused, this is why the message text is hard coded.
+* [Description](#description)
+* [Pre-Requisites](#pre-requisites)
+* [Running the Application](#running-the-application)
+* [Environmental Variables](#environmental-variables)
+* [Callback URLs](#callback-urls)
+  * [Ngrok](#ngrok)
 
-### Autoresponder
+# Description
 
-This app will also respond to messages with simple logic. There is a Map defined at the top of the `index.js` file that you can modify to contain logic that makes more sense for your use.
+This app automatically responds to texts sent to the associated Bandwidth number. Any texts sent to the `BW_NUMBER` will be auto-responded to using the auto response map. Valid words are: `STOP`, `QUIT`, `HELP`, and `INFO`. 
 
-Please note that it does not actually implement any logic to "STOP" sending messages to people although it does include STOP2quit in all messages.
+To use this app, you must check the "Use multiple callback URLs" box on the application page in Dashboard. Then in Dashboard, set the INBOUND CALLBACK to `/callbacks/inbound/messaging` and the STATUS CALLBACK to `/callbacks/outbound/messaging/status`. The same can be accomplished via the Dashboard API by setting InboundCallbackUrl and OutboundCallbackUrl respectively.
 
-Also note that auto-responders are dangerous if not monitored, they always have the potential for looping. Appropriate measures should be taken to insure you don't get into an infinite loop sending messages.
+Inbound callbacks are sent notifying you of a received message on a Bandwidth number, this app sends a custom response to those messages based on their content. Outbound callbacks are status updates for messages sent from a Bandwidth number, this app has a dedicated response for each type of status update.
 
-## Setting up your app
+# Pre-Requisites
 
-Create a Messaging Application within the Bandwidth Dashboard, you'll need to specify the callback url to the ngrok app below.
+In order to use the Bandwidth API users need to set up the appropriate application at the [Bandwidth Dashboard](https://dashboard.bandwidth.com/) and create API tokens.
 
-You'll also need to add at least one number to your Application. This is accomplished by creating a Location, acquiring a number, and adding that number to the location. Then you can associate that Location with the previously created Application.
+To create an application log into the [Bandwidth Dashboard](https://dashboard.bandwidth.com/) and navigate to the `Applications` tab.  Fill out the **New Application** form selecting the service (Messaging or Voice) that the application will be used for.  All Bandwidth services require publicly accessible Callback URLs, for more information on how to set one up see [Callback URLs](#callback-urls).
 
-### Local Setup
+For more information about API credentials see our [Account Credentials](https://dev.bandwidth.com/docs/account/credentials) page.
 
-You'll need ngrok running, or your app to reachable on the interwebs.
+# Running the Application
 
-```
-# get the node requirements
-npm install
-cp .env.default .env
-# the editor of champions
-vi .env
-```
+To install the required packages for this app, run the command:
 
-The config values are straightforward, make sure that your BW_NUMBER starts with a "+".
-
-## Running it
-
-Make sure the application is up and running and accepting requests.
-
-```
-nodemon
+```sh
+npm i
 ```
 
-### Sending a message
+Use the following command to run the application:
 
+```sh
+npm start
 ```
-# I want to send a message to Jenny
-curl http://localhost:3000/send?to_num=15558675309
+
+# Environmental Variables
+
+The sample app uses the below environmental variables.
+
+```sh
+BW_ACCOUNT_ID                        # Your Bandwidth Account Id
+BW_USERNAME                          # Your Bandwidth API Username
+BW_PASSWORD                          # Your Bandwidth API Password
+BW_NUMBER                            # The Bandwidth phone number involved with this application
+BW_MESSAGING_APPLICATION_ID          # Your Messaging Application Id created in the dashboard
+LOCAL_PORT                           # The port number you wish to run the sample on
 ```
 
-Note that the number here is not preceded with a "+", this is largely because with url encoding it would be a pain.
+# Callback URLs
 
-### Responding to messages
+For a detailed introduction, check out our [Bandwidth Messaging Callbacks](https://dev.bandwidth.com/docs/messaging/webhooks) page.
 
-Just send a message from your phone or google voice (a popular tool amongst programmatic voice and messaging developers everywhere) into the number that you previously assigned to this application.
+Below are the callback paths:
+* `/callbacks/outbound/messaging/status` For Outbound Status Callbacks
+* `/callbacks/inbound/messaging` For Inbound Message Callbacks
 
+## Ngrok
+
+A simple way to set up a local callback URL for testing is to use the free tool [ngrok](https://ngrok.com/).  
+After you have downloaded and installed `ngrok` run the following command to open a public tunnel to your port (`$LOCAL_PORT`)
+
+```cmd
+ngrok http $LOCAL_PORT
 ```
-#There's no command line for this one, but it felt weird to not have a grey box here
-echo "done."
-```
+
+You can view your public URL at `http://127.0.0.1:4040` after ngrok is running.  You can also view the status of the tunnel and requests/responses here. Once your public ngrok url has been created, you can use it as the `BASE_CALLBACK_URL` environmental variable and set it in the voice application created in the [Pre-Requisites](#pre-requisites) section.
